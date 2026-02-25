@@ -46,16 +46,27 @@ async function generateThread() {
 
   output.innerText = "Generating...";
 
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ topic })
-  });
+  try {
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ topic: topic })
+    });
 
-  const data = await response.json();
-  output.innerText = data.result;
+    const data = await response.json();
+
+    if (data.result) {
+      output.innerText = data.result;
+    } else {
+      output.innerText = JSON.stringify(data);
+    }
+
+  } catch (error) {
+    console.error(error);
+    output.innerText = "Error generating content.";
+  }
 }
 </script>
 
