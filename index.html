@@ -1,74 +1,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CreatorOS AI Thread Generator</title>
-  <style>
-    body {
-      font-family: Arial;
-      padding: 40px;
-      background: #111;
-      color: white;
-    }
-    input, textarea, button {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      background: #00ff99;
-      border: none;
-      cursor: pointer;
-    }
-    #output {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      background: #222;
-      padding: 20px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <title>Creator Prompt OS</title>
 </head>
-<body>
 
-<h1>CreatorOS AI Thread Generator</h1>
+<body style="font-family: Arial; max-width: 600px; margin: 60px auto;">
 
-<label>Enter Topic:</label>
-<input id="topic" placeholder="Productivity for creators" />
+  <h1>Creator Prompt OS</h1>
+  <p>Generate high-converting AI prompts for creators.</p>
 
-<button onclick="generateThread()">Generate Thread</button>
+  <input 
+    id="topic" 
+    type="text" 
+    placeholder="Enter a topic (e.g. productivity, fitness, marketing)"
+    style="width:100%; padding:10px; font-size:16px;"
+  />
 
-<div id="output"></div>
+  <button 
+    id="generateBtn" 
+    onclick="generatePrompt()" 
+    style="margin-top:15px; padding:10px 20px; font-size:16px;"
+  >
+    Generate
+  </button>
 
-<script>
-async function generateThread() {
-  const topic = document.getElementById("topic").value;
-  const output = document.getElementById("output");
+  <div 
+    id="output" 
+    style="white-space: pre-wrap; margin-top:25px; padding:15px; background:#f4f4f4;"
+  >
+  </div>
 
-  output.innerText = "Generating...";
+  <button 
+    onclick="copyPrompt()" 
+    style="margin-top:15px; padding:8px 16px;"
+  >
+    Copy Prompt
+  </button>
 
-  try {
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ topic: topic })
-    });
+  <script>
+    async function generatePrompt() {
+      const topicInput = document.getElementById("topic");
+      const outputDiv = document.getElementById("output");
+      const button = document.getElementById("generateBtn");
 
-    const data = await response.json();
+      const topic = topicInput.value.trim();
 
-    if (data.result) {
-      output.innerText = data.result;
-    } else {
-      output.innerText = JSON.stringify(data);
+      if (!topic) {
+        outputDiv.innerText = "Please enter a topic.";
+        return;
+      }
+
+      button.disabled = true;
+      button.innerText = "Generating...";
+      outputDiv.innerText = "Generating prompt...";
+
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ topic })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          outputDiv.innerText = data.error || "Something went wrong.";
+        } else {
+          outputDiv.innerText = data.result;
+        }
+
+      } catch (error) {
+        outputDiv.innerText = "Server error. Please try again.";
+      }
+
+      button.disabled = false;
+      button.innerText = "Generate";
     }
 
-  } catch (error) {
-    console.error(error);
-    output.innerText = "Error generating content.";
-  }
-}
-</script>
+    function copyPrompt() {
+      const text = document.getElementById("output").innerText;
+
+      if (!text || text === "Generating prompt...") {
+        alert("Nothing to copy yet.");
+        return;
+      }
+
+      navigator.clipboard.writeText(text);
+      alert("Prompt copied to clipboard!");
+    }
+  </script>
 
 </body>
 </html>
