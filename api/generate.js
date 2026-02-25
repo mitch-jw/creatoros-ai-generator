@@ -6,7 +6,17 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { topic } = req.body;
+    // 🔥 Manually parse body
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    const rawBody = Buffer.concat(buffers).toString();
+    const { topic } = JSON.parse(rawBody);
+
+    if (!topic) {
+      return res.status(400).json({ error: "No topic provided" });
+    }
 
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -28,7 +38,7 @@ export default async function handler(req, res) {
     const aiData = await openaiResponse.json();
 
     if (!aiData.choices) {
-      console.error(aiData);
+      console.error("OpenAI error:", aiData);
       return res.status(500).json({ error: "OpenAI failed" });
     }
 
@@ -50,7 +60,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ result: output });
 
   } catch (error) {
-    console.error(error);
+    console.error("Server crash:", error);
     return res.status(500).json({ error: "Server error" });
   }
 }
