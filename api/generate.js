@@ -1,7 +1,14 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
 export default async function handler(req, res) {
   const { topic } = req.body;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,6 +25,16 @@ export default async function handler(req, res) {
     })
   });
 
-  const data = await response.json();
-  res.status(200).json({ result: data.choices[0].message.content });
+  const data = await aiResponse.json();
+  const output = data.choices[0].message.content;
+
+  await supabase.from("generations").insert([
+    {
+      user_email: "test@creatoros.com",
+      topic,
+      output
+    }
+  ]);
+
+  res.status(200).json({ result: output });
 }
