@@ -61,3 +61,15 @@ CTA:
     return res.status(500).json({ error: "Server error" });
   }
 }
+
+// Count total generations
+const { count } = await supabase
+  .from("generations")
+  .select("*", { count: "exact", head: true });
+
+// Free limit = 5
+if (count >= 5) {
+  return res.status(403).json({
+    error: "Free limit reached. Upgrade to Pro for unlimited prompts."
+  });
+}
