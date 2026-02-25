@@ -40,21 +40,11 @@
 <div id="output"></div>
 
 <script>
-async function generatePrompt() {
-  const topicInput = document.getElementById("topic");
-  const outputDiv = document.getElementById("output");
-  const button = document.getElementById("generateBtn");
+async function generateThread() {
+  const topic = document.getElementById("topic").value;
+  const output = document.getElementById("output");
 
-  const topic = topicInput.value.trim();
-
-  if (!topic) {
-    outputDiv.innerText = "Please enter a topic.";
-    return;
-  }
-
-  button.disabled = true;
-  button.innerText = "Generating...";
-  outputDiv.innerText = "Generating prompt...";
+  output.innerText = "Generating...";
 
   try {
     const response = await fetch("/api/generate", {
@@ -62,35 +52,21 @@ async function generatePrompt() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ topic })
+      body: JSON.stringify({ topic: topic })
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      outputDiv.innerText = data.error || "Something went wrong.";
+    if (data.result) {
+      output.innerText = data.result;
     } else {
-      outputDiv.innerText = data.result;
+      output.innerText = JSON.stringify(data);
     }
 
   } catch (error) {
-    outputDiv.innerText = "Server error. Try again.";
+    console.error(error);
+    output.innerText = "Error generating content.";
   }
-
-  button.disabled = false;
-  button.innerText = "Generate";
-}
-
-function copyPrompt() {
-  const text = document.getElementById("output").innerText;
-
-  if (!text || text === "Generating prompt...") {
-    alert("Nothing to copy yet.");
-    return;
-  }
-
-  navigator.clipboard.writeText(text);
-  alert("Prompt copied to clipboard!");
 }
 </script>
 
