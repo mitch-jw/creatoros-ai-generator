@@ -1,40 +1,56 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
 export default async function handler(req, res) {
-  const { topic } = req.body;
-
-  const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: `Generate a high-converting Twitter thread about ${topic}. Include hook and CTA.`
-        }
-      ]
-    })
-  });
-
-  const data = await aiResponse.json();
-  const output = data.choices[0].message.content;
-
-  await supabase.from("generations").insert([
-    {
-      user_email: "test@creatoros.com",
-      topic,
-      output
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
-  ]);
 
-  res.status(200).json({ result: output });
+    const { topic } = req.body;
+
+    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: `Generate a high-converting Twitter thread about ${topic}. Include hook and CTA.`
+          }
+        ]
+      })
+    });
+
+    const aiData = await openaiResponse.json();
+
+    if (!aiData.choices) {
+      console.error(aiData);
+      return res.status(500).json({ error: "OpenAI failed" });
+    }
+
+    const output = aiData.choices[0].message.content;
+
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
+    );
+
+    await supabase.from("generations").insert([
+      {
+        user_email: "test@creatoros.com",
+        topic,
+        output
+      }
+    ]);
+
+    return res.status(200).json({ result: output });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Server error" });
+  }
 }
