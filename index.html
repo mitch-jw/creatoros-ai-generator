@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CreatorOS AI Thread Generator</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 40px;
+      background: #111;
+      color: white;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      background: #00ff99;
+      border: none;
+      cursor: pointer;
+    }
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #222;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>CreatorOS AI Thread Generator</h1>
+
+<label>Enter Topic:</label>
+<input id="topic" placeholder="Productivity for creators" />
+
+<button onclick="generateThread()">Generate Thread</button>
+
+<div id="output"></div>
+
+<script>
+function generateThread() {
+  const topic = document.getElementById("topic").value;
+  const output = document.getElementById("output");
+
+  output.innerText = 
+  "HOOK:\n" +
+  "Most creators fail at " + topic + " because they do this wrong...\n\n" +
+  "1. They don't systemize.\n" +
+  "2. They don't track performance.\n" +
+  "3. They rely on motivation.\n\n" +
+  "CTA:\n" +
+  "Follow for more systems that scale.";
+}
+</script>
+
+</body>
+</html>
