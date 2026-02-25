@@ -6,7 +6,6 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // 🔥 Manually parse body
     const buffers = [];
     for await (const chunk of req) {
       buffers.push(chunk);
@@ -18,31 +17,31 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No topic provided" });
     }
 
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: `Generate a high-converting Twitter thread about ${topic}. Include hook and CTA.`
+    const hfResponse = await fetch(
+      "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.HF_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inputs: `Generate a high-converting Twitter thread about ${topic}. Include hook and CTA.`,
+          parameters: {
+            max_new_tokens: 400
           }
-        ]
-      })
-    });
+        })
+      }
+    );
 
-    const aiData = await openaiResponse.json();
+    const hfData = await hfResponse.json();
 
-    if (!aiData.choices) {
-      console.error("OpenAI error:", aiData);
-      return res.status(500).json({ error: "OpenAI failed" });
+    if (!hfData || !hfData[0]?.generated_text) {
+      console.error(hfData);
+      return res.status(500).json({ error: "HF failed" });
     }
 
-    const output = aiData.choices[0].message.content;
+    const output = hfData[0].generated_text;
 
     const supabase = createClient(
       process.env.SUPABASE_URL,
@@ -60,7 +59,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ result: output });
 
   } catch (error) {
-    console.error("Server crash:", error);
+    console.error(error);
     return res.status(500).json({ error: "Server error" });
   }
 }
