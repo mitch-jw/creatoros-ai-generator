@@ -62,12 +62,23 @@ CTA:
   }
 }
 
-// Count total generations
-const { count } = await supabase
-  .from("generations")
-  .select("*", { count: "exact", head: true });
+// Safe count check bc it crashed :((
+let count = 0;
 
-// Free limit = 5
+try {
+  const { count: dbCount, error } = await supabase
+    .from("generations")
+    .select("*", { count: "exact", head: true });
+
+  if (error) {
+    console.error("Count error:", error);
+  } else {
+    count = dbCount || 0;
+  }
+} catch (err) {
+  console.error("Count crash:", err);
+}
+
 if (count >= 5) {
   return res.status(403).json({
     error: "Free limit reached. Upgrade to Pro for unlimited prompts."
