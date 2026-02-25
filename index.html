@@ -40,18 +40,22 @@
 <div id="output"></div>
 
 <script>
-function generateThread() {
+async function generateThread() {
   const topic = document.getElementById("topic").value;
   const output = document.getElementById("output");
 
-  output.innerText = 
-  "HOOK:\n" +
-  "Most creators fail at " + topic + " because they do this wrong...\n\n" +
-  "1. They don't systemize.\n" +
-  "2. They don't track performance.\n" +
-  "3. They rely on motivation.\n\n" +
-  "CTA:\n" +
-  "Follow for more systems that scale.";
+  output.innerText = "Generating...";
+
+  const response = await fetch("/api/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ topic })
+  });
+
+  const data = await response.json();
+  output.innerText = data.result;
 }
 </script>
 
